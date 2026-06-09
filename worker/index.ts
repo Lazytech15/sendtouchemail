@@ -17,6 +17,7 @@ export default {
           name?: string;
           email?: string;
           message?: string;
+          source?: string;
         };
 
         // Basic validation
@@ -33,6 +34,7 @@ export default {
             email: body.email.trim(),
             message: body.message.trim(),
             timestamp: new Date().toISOString(),
+            source: body.source?.trim(),
           },
         });
 
