@@ -10,18 +10,21 @@ interface ContactParams {
   source?: string; // e.g. "https://vuesurmontagne.ph" or "https://eablao.dev"
 }
 
-/** Format ISO timestamp → "11:13:45 AM || 06/09/2026" */
+/** Format ISO timestamp → "11:13:45 AM || 06/09/2026" (Philippines Time, UTC+8) */
 function formatTimestamp(iso: string): string {
   const d = new Date(iso);
-  const hh = d.getUTCHours();
-  const mm = d.getUTCMinutes().toString().padStart(2, "0");
-  const ss = d.getUTCSeconds().toString().padStart(2, "0");
+  // Shift to PHT (UTC+8)
+  const phtOffset = 8 * 60 * 60 * 1000;
+  const pht = new Date(d.getTime() + phtOffset);
+  const hh = pht.getUTCHours();
+  const mm = pht.getUTCMinutes().toString().padStart(2, "0");
+  const ss = pht.getUTCSeconds().toString().padStart(2, "0");
   const ampm = hh >= 12 ? "PM" : "AM";
   const hour12 = (hh % 12 || 12).toString().padStart(2, "0");
-  const month = (d.getUTCMonth() + 1).toString().padStart(2, "0");
-  const day = d.getUTCDate().toString().padStart(2, "0");
-  const year = d.getUTCFullYear();
-  return `${hour12}:${mm}:${ss} ${ampm} || ${month}/${day}/${year}`;
+  const month = (pht.getUTCMonth() + 1).toString().padStart(2, "0");
+  const day = pht.getUTCDate().toString().padStart(2, "0");
+  const year = pht.getUTCFullYear();
+  return `${hour12}:${mm}:${ss} ${ampm} PHT || ${month}/${day}/${year}`;
 }
 
 /** Map an origin URL to a friendly display label */
