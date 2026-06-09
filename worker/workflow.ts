@@ -7,10 +7,10 @@ interface ContactParams {
   email: string;
   message: string;
   timestamp: string;
-  source?: string; // e.g. "https://vuesurmontagne.ph" or "https://eablao.dev"
+  source?: string; // e.g. "Portfolio — eablao.dev" or "Vue sur la Montagne Hotel"
 }
 
-/** Format ISO timestamp → "11:13:45 AM || 06/09/2026" (Philippines Time, UTC+8) */
+/** Format ISO timestamp → "11:13:45 AM PHT || 06/09/2026" (Philippines Time, UTC+8) */
 function formatTimestamp(iso: string): string {
   const d = new Date(iso);
   // Shift to PHT (UTC+8)
@@ -24,23 +24,19 @@ function formatTimestamp(iso: string): string {
   const month = (pht.getUTCMonth() + 1).toString().padStart(2, "0");
   const day = pht.getUTCDate().toString().padStart(2, "0");
   const year = pht.getUTCFullYear();
-  return `${hour12}:${mm}:${ss} ${ampm} PHT || ${month}/${day}/${year}`;
+  return `${hour12}:${mm}:${ss} ${ampm} PH Time || ${month}/${day}/${year}`;
 }
 
-/** Map an origin URL to a friendly display label */
-function resolveSource(source?: string): { label: string; url: string } {
-  if (!source) return { label: "Unknown", url: "" };
-  const lower = source.toLowerCase();
-  if (lower.includes("eablao.dev"))        return { label: "Portfolio — eablao.dev", url: source };
-  if (lower.includes("vuesurmontagne"))    return { label: "Vue sur la Montagne Hotel", url: source };
-  return { label: source, url: source };
+/** Pass through the source label sent by the frontend, with a fallback */
+function resolveSource(source?: string): string {
+  return source?.trim() || "Unknown";
 }
 
 export class EmailWorkflow extends WorkflowEntrypoint<Env, ContactParams> {
   async run(event: WorkflowEvent<ContactParams>, step: WorkflowStep) {
     const { name, email, message, timestamp, source } = event.payload;
     const readableDate = formatTimestamp(timestamp);
-    const { label: sourceLabel, url: sourceUrl } = resolveSource(source);
+    const sourceLabel = resolveSource(source);
 
     // Step 1: Send email via Resend
     await step.do("send email via resend", async () => {
@@ -54,7 +50,6 @@ export class EmailWorkflow extends WorkflowEntrypoint<Env, ContactParams> {
           from: "Portfolio Contact <onboarding@resend.dev>",
           to: [this.env.TO_EMAIL],
 
-          // Subject line now includes the source site
           subject: `New message from ${name} — ${sourceLabel}`,
 
           text: `
@@ -63,7 +58,7 @@ You have a new contact form submission.
 From:           ${name}
 Contact Email:  ${email}
 Received From:  ${this.env.TO_EMAIL}
-Source:         ${sourceLabel}${sourceUrl ? ` (${sourceUrl})` : ""}
+Source:         ${sourceLabel}
 Sent:           ${readableDate}
 
 Message:
