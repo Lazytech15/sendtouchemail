@@ -11,10 +11,6 @@
     "enabled": true
   },
 
-  /**
-   * Workflows
-   * EmailWorkflow handles sending via Resend after a contact form submission
-   */
   "workflows": [
     {
       "name": "email-workflow",
@@ -23,11 +19,26 @@
     }
   ],
 
+  /**
+   * Migrations
+   * v1: created WorkflowStatusDO (original demo)
+   * v2: delete it so Cloudflare allows removing the class from the worker
+   */
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["WorkflowStatusDO"]
+    },
+    {
+      "tag": "v2",
+      "deleted_classes": ["WorkflowStatusDO"]
+    }
+  ],
+
   "upload_source_maps": true
 
   /**
-   * Secrets (do NOT put real values here)
-   * Set them with:
+   * Secrets — set via CLI, never commit values:
    *   npx wrangler secret put RESEND_API_KEY
    *   npx wrangler secret put TO_EMAIL
    */
