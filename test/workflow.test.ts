@@ -1,48 +1,61 @@
-import { env, introspectWorkflowInstance } from "cloudflare:test";
 import { describe, it, expect } from "vitest";
+import worker from "../worker/index";
 
-describe("MyWorkflow", () => {
-	it("completes and returns expected step result", async () => {
-		const instanceId = `test-${Date.now()}`;
+// Minimal mock env — secrets aren't needed for request-routing tests
+const mockEnv = {
+	EMAIL_WORKFLOW: {
+		create: async () => ({ id: "test-instance-id" }),
+	},
+	RESEND_API_KEY: "re_test_key",
+	TO_EMAIL: "test@example.com",
+} as unknown as Env;
 
-		await using instance = await introspectWorkflowInstance(
-			env.MY_WORKFLOW,
-			instanceId,
-		);
+function makeRequest(method: string, path: string, body?: object): Request {
+	return new Request(`https://worker.example.com${path}`, {
+		method,
+		headers: { "Content-Type": "application/json" },
+		body: body ? JSON.stringify(body) : undefined,
+	});
+}
 
-		await instance.modify(async (m) => {
-			await m.disableSleeps();
-			await m.mockEvent({
-				type: "user-approval",
-				payload: { approved: true },
-			});
+describe("Contact worker", () => {
+	it("POST /api/contact returns 200 with valid payload", async () => {
+		const req = makeRequest("POST", "/api/contact", {
+			name: "Jose Ramirez",
+			email: "jose@example.com",
+			message: "Hello, I want to work with you!",
 		});
 
-		await env.MY_WORKFLOW.create({ id: instanceId });
+		const res = await worker.fetch(req, mockEnv);
+		expect(res.status).toBe(200);
 
-		const result = await instance.waitForStepResult({ name: "process data" });
-
-		expect(result).toMatchObject({
-			processed: true,
-		});
-		expect(result).toHaveProperty("timestamp");
+		const body = await res.json() as { success: boolean; instanceId: string };
+		expect(body.success).toBe(true);
+		expect(body.instanceId).toBe("test-instance-id");
 	});
 
-	it("errors when approval event times out", async () => {
-		const instanceId = `test-${Date.now()}`;
-
-		await using instance = await introspectWorkflowInstance(
-			env.MY_WORKFLOW,
-			instanceId,
-		);
-
-		await instance.modify(async (m) => {
-			await m.disableSleeps();
-			await m.forceEventTimeout({ name: "wait for approval" });
+	it("POST /api/contact returns 400 when fields are missing", async () => {
+		const req = makeRequest("POST", "/api/contact", {
+			name: "Jose Ramirez",
+			// missing email and message
 		});
 
-		await env.MY_WORKFLOW.create({ id: instanceId });
+		const res = await worker.fetch(req, mockEnv);
+		expect(res.status).toBe(400);
 
-		await expect(instance.waitForStatus("errored")).resolves.not.toThrow();
+		const body = await res.json() as { error: string };
+		expect(body.error).toContain("required");
+	});
+
+	it("OPTIONS /api/contact returns 204 for CORS preflight", async () => {
+		const req = makeRequest("OPTIONS", "/api/contact");
+		const res = await worker.fetch(req, mockEnv);
+		expect(res.status).toBe(204);
+	});
+
+	it("GET unknown route returns 404", async () => {
+		const req = makeRequest("GET", "/not-a-real-route");
+		const res = await worker.fetch(req, mockEnv);
+		expect(res.status).toBe(404);
 	});
 });
