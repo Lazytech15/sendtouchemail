@@ -44,7 +44,7 @@ export class EmailWorkflow extends WorkflowEntrypoint<Env, ContactParams> {
         },
         body: JSON.stringify({
           // ✅ Fixed: use verified eablao.dev domain so email delivers to any inbox
-          from: "Emerson Ablao <hello@eablao.dev>",
+          from: "Emmanuel Ablao <eablao.dev>",
           to: [this.env.TO_EMAIL],
 
           subject: `New message from ${name} — ${sourceLabel}`,

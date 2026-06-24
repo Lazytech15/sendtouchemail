@@ -137,41 +137,88 @@ function corsResponse(response: Response): Response {
 }
 
 // ─── Guest confirmation HTML ─────────────────────────────────────────────────
-function buildGuestHtml(p: { guestName: string; roomType: string; checkInFmt: string; checkOutFmt: string; nights: number | null; guests: string; bookingRef: string }): string {
+function buildGuestHtml(p: {
+  guestName: string; roomType: string; checkInFmt: string;
+  checkOutFmt: string; nights: number | null; guests: string; bookingRef: string
+}): string {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"/>
 <style>
-  body{font-family:Georgia,serif;margin:0;padding:0;background:#f0ebe0;}
-  .wrap{max-width:560px;margin:32px auto;background:#fff;border:1px solid #dccbb5;}
-  .hdr{background:#1B365D;padding:32px;text-align:center;}
-  .hdr-eye{font-family:Arial,sans-serif;font-size:10px;letter-spacing:.35em;text-transform:uppercase;color:#DCCBB5;opacity:.75;}
-  .hdr-title{font-size:26px;font-style:italic;font-weight:400;color:#DCCBB5;margin:8px 0 0;}
-  .check{width:48px;height:48px;border-radius:50%;border:1px solid rgba(220,203,181,.4);display:inline-block;line-height:48px;font-size:22px;color:#DCCBB5;margin-bottom:12px;}
-  .body{padding:32px;}
-  .greeting{font-size:15px;color:#1B365D;margin-bottom:16px;}
-  .intro{font-size:13px;color:rgba(51,51,51,.65);line-height:1.7;margin-bottom:28px;font-family:Arial,sans-serif;}
-  .sec-label{font-family:Arial,sans-serif;font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:rgba(27,54,93,.5);margin-bottom:12px;}
-  table{width:100%;border-collapse:collapse;margin-bottom:28px;}
-  td{padding:10px 0;border-bottom:1px solid rgba(27,54,93,.08);font-family:Arial,sans-serif;font-size:13px;}
-  td:first-child{color:rgba(51,51,51,.45);font-size:10px;letter-spacing:.15em;text-transform:uppercase;width:38%;}
-  td:last-child{color:#1B365D;font-weight:500;}
-  .ref{background:rgba(27,54,93,.04);border:1px solid rgba(27,54,93,.12);padding:10px 16px;margin-bottom:28px;font-family:monospace;font-size:11px;color:rgba(27,54,93,.5);}
-  .note{font-family:Arial,sans-serif;font-size:12px;color:rgba(51,51,51,.55);line-height:1.7;margin-bottom:24px;}
-  hr{border:none;border-top:1px solid rgba(27,54,93,.1);margin:24px 0;}
-  .ftr{background:#F5F0E8;padding:20px 32px;text-align:center;border-top:1px solid rgba(27,54,93,.1);}
-  .ftr p{font-family:Arial,sans-serif;font-size:11px;color:rgba(51,51,51,.45);margin:4px 0;}
-  .disclaimer{background:#fff3cd;padding:16px 32px;text-align:center;border-top:1px solid #ffeeba;}
-  .disclaimer p{font-family:Arial,sans-serif;font-size:11px;color:#856404;margin:4px 0;line-height:1.6;}
-  .disclaimer a{color:#856404;font-weight:bold;text-decoration:underline;}
+  @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap');
+
+  /* Base Light Mode Styles */
+  body { font-family: 'Open Sans', Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f5; color: #333333; }
+  .wrap { max-width: 600px; margin: 32px auto; background: #ffffff; border: 1px solid #e4e4e7; }
+  
+  /* Header (Text above image) */
+  .hdr { padding: 32px 24px; text-align: center; }
+  .hdr-name { font-size: 28px; font-weight: 600; color: #1B365D; margin: 0 0 8px; letter-spacing: 0.02em; }
+  .hdr-details { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: #666666; margin: 4px 0; }
+  
+  /* Image */
+  .hero-img { width: 100%; height: auto; max-height: 260px; object-fit: cover; display: block; border-top: 1px solid #e4e4e7; border-bottom: 1px solid #e4e4e7; }
+  
+  /* Body */
+  .body { padding: 32px; }
+  .greeting { font-size: 15px; font-weight: 600; color: #1B365D; margin-bottom: 16px; }
+  .intro { font-size: 14px; color: #555555; line-height: 1.6; margin-bottom: 32px; }
+  .sec-label { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #888888; margin-bottom: 16px; border-bottom: 1px solid #e4e4e7; padding-bottom: 8px; }
+  
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+  td { padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+  td:first-child { color: #666666; font-size: 12px; width: 35%; }
+  td:last-child { color: #333333; font-weight: 600; }
+  
+  /* Reference Box */
+  .ref { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 16px; margin-bottom: 24px; font-family: monospace; font-size: 12px; color: #475569; border-radius: 4px; }
+  .note { font-size: 13px; color: #666666; line-height: 1.6; margin-bottom: 24px; }
+  hr { border: none; border-top: 1px solid #e4e4e7; margin: 24px 0; }
+  .contact { font-size: 13px; color: #666666; line-height: 1.8; }
+  .contact a { color: #1B365D; text-decoration: none; }
+  
+  /* Footer */
+  .ftr { background: #fafafa; padding: 24px 32px; text-align: center; border-top: 1px solid #e4e4e7; }
+  .ftr p { font-size: 12px; color: #888888; margin: 4px 0; }
+  .disclaimer { background: #fffbeb; padding: 16px 32px; text-align: center; border-top: 1px solid #fde68a; }
+  .disclaimer p { font-size: 11px; color: #b45309; margin: 4px 0; line-height: 1.6; }
+  .disclaimer a { color: #b45309; font-weight: 600; text-decoration: underline; }
+
+  /* Dark Mode Media Queries */
+  @media (prefers-color-scheme: dark) {
+    body { background: #121212; color: #e0e0e0; }
+    .wrap { background: #1e1e1e; border-color: #333333; }
+    .hdr-name { color: #f8fafc; }
+    .hdr-details { color: #94a3b8; }
+    .hero-img { border-top-color: #333333; border-bottom-color: #333333; }
+    .greeting { color: #f8fafc; }
+    .intro { color: #cbd5e1; }
+    .sec-label { color: #94a3b8; border-bottom-color: #333333; }
+    td { border-bottom-color: #2d2d2d; }
+    td:first-child { color: #94a3b8; }
+    td:last-child { color: #f8fafc; }
+    .ref { background: #27272a; border-color: #3f3f46; color: #cbd5e1; }
+    .note { color: #cbd5e1; }
+    hr { border-top-color: #333333; }
+    .contact { color: #cbd5e1; }
+    .contact a { color: #93c5fd; }
+    .ftr { background: #18181b; border-top-color: #333333; }
+    .ftr p { color: #71717a; }
+    .disclaimer { background: #422006; border-top-color: #78350f; }
+    .disclaimer p, .disclaimer a { color: #fde68a; }
+  }
 </style></head><body>
-<div class="wrap">
-  <div class="hdr">
-    <div class="check">✓</div>
-    <div class="hdr-eye">Reservation Request</div>
-    <div class="hdr-title">Request Received</div>
-  </div>
+<div class="wrap">  
+  <img class="hero-img" src="https://res.cloudinary.com/dobw24nxw/image/upload/v1782289309/mountain_View_wtttmw.webp" alt="Vue sur la Montagne Hotel"/>
+
+    <div class="hdr">
+      <div class="hdr-details">Tanay, Rizal · Philippines</div>
+      <div class="hdr-details">Hotel &amp; Nature Retreat</div>
+    </div>
+  
   <div class="body">
     <div class="greeting">Dear ${p.guestName},</div>
-    <div class="intro">Thank you for choosing <strong>Vue sur la Montagne Hotel</strong>. We have received your reservation request and our team will review and confirm your booking within 24 hours.</div>
+    <div class="intro">Thank you for choosing Vue sur la Montagne Hotel. We have received your reservation request and our team will review and confirm your booking within 24 hours.</div>
+    
     <div class="sec-label">Your Booking Details</div>
     <table>
       <tr><td>Room Type</td><td>${p.roomType}</td></tr>
@@ -180,15 +227,22 @@ function buildGuestHtml(p: { guestName: string; roomType: string; checkInFmt: st
       ${p.nights ? `<tr><td>Duration</td><td>${p.nights} Night${p.nights > 1 ? "s" : ""}</td></tr>` : ""}
       <tr><td>Guests</td><td>${p.guests}</td></tr>
     </table>
+    
     <div class="ref">Booking Reference: ${p.bookingRef}</div>
+    
     <div class="note">Our reservations team will send you a final confirmation once your booking is approved. If you have any questions, please reach out to us.</div>
     <hr/>
-    <div class="note">📞 &nbsp;+63 2 8123 4567 &nbsp;·&nbsp; +63 917 555 8900<br/>✉️ &nbsp;reservations@vuesurmontagne.ph</div>
+    <div class="contact">
+      📞 &nbsp;+63 2 8123 4567 &nbsp;·&nbsp; +63 917 555 8900<br/>
+      ✉️ &nbsp;<a href="mailto:reservations@vuesurmontagne.ph">reservations@vuesurmontagne.ph</a>
+    </div>
   </div>
+  
   <div class="ftr">
     <p><strong>Vue sur la Montagne Hotel</strong></p>
     <p>Km. 28 Tanay–Sampaloc Road, Tanay, Rizal 1980, Philippines</p>
   </div>
+  
   <div class="disclaimer">
     <p><strong>Disclaimer:</strong> This email contains mock data and is entirely fictitious. It is generated solely for a reservation system portfolio demonstration.</p>
     <p>View my portfolio at: <a href="https://eablao.dev" target="_blank">https://eablao.dev</a></p>
